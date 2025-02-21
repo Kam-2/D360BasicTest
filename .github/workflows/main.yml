@@ -19,10 +19,28 @@ jobs:
           git config --global user.email "Kamal@cube84.com"
           
       - name: Push Code to Target Repository
-        env:
-          TARGET_REPO_TOKEN: ${{ secrets.SOURCE_REPO_TOKEN }}
-        run: |
-          git remote add target https://x-access-token:${TARGET_REPO_TOKEN}@github.com/Kam-2/TestClientA.git
-          git fetch target
-          git push target main
-          git push origin main
+  env:
+    TARGET_REPO_TOKEN: ${{ secrets.SOURCE_REPO_TOKEN }}
+  run: |
+    set -e  # Exit if any command fails
+
+    # Check if the repo is empty or exists
+    if git ls-remote https://x-access-token:${TARGET_REPO_TOKEN}@github.com/Kam-2/TestClientA.git; then
+      echo "✅ Target repository exists. Cloning..."
+      git clone https://x-access-token:${TARGET_REPO_TOKEN}@github.com/Kam-2/TestClientA.git target-repo
+      cd target-repo
+      git checkout main || git checkout -b main
+    else
+      echo "🚀 Target repository is empty. Initializing..."
+      mkdir target-repo
+      cd target-repo
+      git init
+      git checkout -b main
+      git remote add origin https://x-access-token:${TARGET_REPO_TOKEN}@github.com/Kam-2/TestClientA.git
+    fi
+
+    # Sync files and push
+    rsync -av --exclude='.git' ../. .
+    git add .
+    git commit -m "Automated sync from source repo" || echo "No changes to commit."
+    git push origin main
