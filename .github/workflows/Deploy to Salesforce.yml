@@ -20,15 +20,15 @@ jobs:
 
       - name: Authenticate with Salesforce (JWT)
         run: |
-          echo "${{ secrets.SFDX_JWT_KEY }}" > server.key
-          sfdx auth jwt grant --client-id ${{ secrets.SFDX_CLIENT_ID }} \
+          echo "${{ secrets.SF_SANDBOX_JWT_KEY }}" > server.key
+          sfdx auth jwt grant --client-id ${{ secrets.SF_SANDBOX_CLIENT_ID }} \
             --jwt-key-file server.key \
-            --username ${{ secrets.SFDX_USERNAME }} \
-            --instance-url https://login.salesforce.com
+            --username ${{ secrets.SF_SANDBOX_USERNAME }} \
+            --instance-url https://test.salesforce.com
 
       - name: Deploy to Production
         run: |
-          sfdx force:source:deploy -p force-app -u ${{ secrets.SFDX_USERNAME }} --wait 10 --verbose
+          sfdx force:source:deploy -p force-app -u ${{ secrets.SF_SANDBOX_USERNAME }} --wait 10 --verbose
 
       - name: Clean up
         run: rm -f server.key
