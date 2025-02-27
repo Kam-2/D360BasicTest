@@ -1,4 +1,4 @@
-name: Deploy to Salesforce Sandbox
+name: Deploy to Salesforce Production
 
 on:
   push:
@@ -7,37 +7,31 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest                        
+    runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Install Salesforce CLI
         run: |
-          npm install --global sfdx-cli
-          export PATH=$PATH:/usr/local/bin
+          wget https://developer.salesforce.com/media/salesforce-cli/sfdx-linux-amd64.tar.xz
+          mkdir ~/sfdx
+          tar xJf sfdx-linux-amd64.tar.xz -C ~/sfdx --strip-components 1
+          echo "$HOME/sfdx/bin" >> $GITHUB_PATH
+          sfdx --version
 
-      - name: Check Salesforce CLI Version
-        run: sfdx --version
-
-      - name: Debug Secrets
+      - name: Authenticate with Salesforce (JWT)
         run: |
-          echo "Client ID: ${{ secrets.SF_SANDBOX_CLIENT_ID }}"
-          echo "Username: ${{ secrets.SF_SANDBOX_USERNAME }}"
-          echo "Instance URL: ${{ secrets.SF_SANDBOX_URL }}"
+          echo "${{ secrets.SFDX_JWT_KEY }}" > server.key
+          sfdx auth jwt grant --client-id ${{ secrets.SFDX_CLIENT_ID }} \
+            --jwt-key-file server.key \
+            --username ${{ secrets.SFDX_USERNAME }} \
+            --instance-url https://login.salesforce.com
 
-      - name: Authenticate to Salesforce Sandbox
+      - name: Deploy to Production
         run: |
-          echo "${{ secrets.SF_SANDBOX_JWT_KEY }}" > server.key
-          sfdx force:auth:jwt:grant \
-          --client-id "${{ secrets.SF_SANDBOX_CLIENT_ID }}" \
-          --jwt-key-file server.key \
-          --username "${{ secrets.SF_SANDBOX_USERNAME }}" \
-          --instance-url "${{ secrets.SF_SANDBOX_URL }}" \
-          --set-default
-          sfdx config:set defaultusername=${{ secrets.SF_SANDBOX_USERNAME }}
-      - name: Verify Authentication
-        run: sfdx force:org:list
+          sfdx force:source:deploy -p force-app -u ${{ secrets.SFDX_USERNAME }} --wait 10 --verbose
 
-      - name: Deploy to Salesforce Sandbox
-        run: sfdx force:source:deploy -p force-app -w 10 --testlevel RunLocalTests
+      - name: Clean up
+        run: rm -f server.key
