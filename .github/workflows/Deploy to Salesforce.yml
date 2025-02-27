@@ -3,7 +3,7 @@ name: Deploy to Salesforce Sandbox
 on:
   push:
     branches:
-      - dev  # Deploys to Sandbox when pushing to dev branch
+      - main  # Deploys to Sandbox when pushing to dev branch
 
 jobs:
   deploy:
