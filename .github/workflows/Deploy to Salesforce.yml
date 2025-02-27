@@ -19,7 +19,7 @@ jobs:
       - name: Authenticate to Salesforce Sandbox
         run: |
           echo "${{ secrets.SF_SANDBOX_JWT_KEY }}" > server.key
-          sfdx auth:jwt:grant --client-id ${{ secrets.SF_SANDBOX_CLIENT_ID }} --jwt-key-file server.key --username ${{ secrets.SF_SANDBOX_USERNAME }} --instance-url ${{ secrets.SF_SANDBOX_URL }} --set-default
+          sfdx force:auth:jwt:grant --client-id ${{ secrets.SF_SANDBOX_CLIENT_ID }} --jwt-key-file server.key --username ${{ secrets.SF_SANDBOX_USERNAME }} --instance-url ${{ secrets.SF_SANDBOX_URL }}
           sfdx config:set defaultusername=${{ secrets.SF_SANDBOX_USERNAME }}
 
       - name: Verify Authentication
@@ -29,4 +29,3 @@ jobs:
       - name: Deploy to Salesforce Sandbox
         run: |
           sfdx force:source:deploy -p force-app -w 10 --testlevel RunLocalTests
-
