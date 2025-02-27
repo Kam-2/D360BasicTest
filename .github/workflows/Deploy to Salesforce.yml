@@ -28,7 +28,7 @@ jobs:
 
       - name: Deploy to Production
         run: |
-          sfdx force:source:deploy -p force-app -u ${{ secrets.SF_SANDBOX_USERNAME }} --wait 10 --verbose
+          sfdx force:source:deploy -m LightningComponentBundle:Testcase -u kamal@cube84.com --wait 10 --verbose
 
       - name: Clean up
         run: rm -f server.key
