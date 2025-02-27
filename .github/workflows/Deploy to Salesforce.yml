@@ -1,0 +1,26 @@
+name: Deploy to Salesforce Sandbox
+
+on:
+  push:
+    branches:
+      - dev  # Deploys to Sandbox when pushing to dev branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Salesforce CLI
+        run: |
+          npm install --global sfdx-cli
+
+      - name: Authenticate to Salesforce Sandbox
+        run: |
+          echo "${{ secrets.SF_SANDBOX_JWT_KEY }}" > server.key
+          sfdx auth:jwt:grant --client-id ${{ secrets.SF_SANDBOX_CLIENT_ID }} --jwt-key-file server.key --username ${{ secrets.SF_SANDBOX_USERNAME }} --instance-url ${{ secrets.SF_SANDBOX_URL }} --set-default-dev-hub
+
+      - name: Deploy to Salesforce Sandbox
+        run: |
+          sfdx force:source:deploy -p force-app -w 10 --testlevel RunLocalTests
